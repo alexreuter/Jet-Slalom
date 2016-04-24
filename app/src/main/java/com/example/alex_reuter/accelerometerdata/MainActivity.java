@@ -29,6 +29,7 @@ import java.util.ArrayList;
 //Get rid of groundRect Rect.
 //Fix strange upside down plane flip.
 //Get scaling correct for a simple rect.
+//Need to change speed
 
 public class MainActivity extends Activity implements SensorEventListener{
 
