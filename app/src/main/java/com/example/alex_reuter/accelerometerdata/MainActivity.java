@@ -5,10 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.os.Vibrator;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -17,19 +14,13 @@ import android.os.Bundle;
 import android.view.Display;
 import android.view.View;
 import android.hardware.SensorEventListener;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 
 //Can implement if go upside down then plane crashes.
 //Get rid of groundRect Rect.
 //Fix strange upside down plane flip.
 //Get scaling correct for a simple rect.
-//Need to change speed
+//Need to change speed according to screen density
+//Need to make smoothing only happen at low delta values.
 
 public class MainActivity extends Activity implements SensorEventListener{
 
@@ -47,7 +38,9 @@ public class MainActivity extends Activity implements SensorEventListener{
     double offsetF = 0;
 
     public int maxXchange = 6;
-    public int planeSpeed = 1;
+    public double planeSpeed = 7 ;
+    public double xSpeed = 0.5;
+
     //MAKE PLANE SPEED WORK
 
     //TEMP VARIABLES TO BE DELETED
@@ -55,7 +48,6 @@ public class MainActivity extends Activity implements SensorEventListener{
     //Speed turning asssociated to rotation angle.
 
     public double xChange = 0;
-
 
 
     //How is drawing scalable rectangles gonna work? /*
@@ -87,7 +79,7 @@ public class MainActivity extends Activity implements SensorEventListener{
         //Sizes of stuff
         final int planeWidth = width/3;
         final int planeHeight = height-(planeWidth+(height/8));
-        final int boxSize = 40;
+        final int boxSize = 10;
 
         //Vibration test
 
@@ -135,11 +127,11 @@ public class MainActivity extends Activity implements SensorEventListener{
                 canvas.restore();
 
 
-                canvas.drawRect(((width/2)-(boxSize/2)) + (float)offsetO,height/2 + (float)offsetT,(width/2)+(boxSize/2)+(float)offsetH,(height/2)+boxSize +(float)offsetF, black);
-                offsetO = offsetO-1+xChange;
-                offsetT = offsetT+2;
-                offsetH = offsetH +1+xChange;
-                offsetF = offsetF+4;
+                canvas.drawRect(((width/2)-(boxSize/2)) - (float)offsetO,height/2-(boxSize/2) - (float)offsetT,(width/2)+(boxSize/2)+(float)offsetH,(height/2)+(boxSize/2) +(float)offsetF, black);
+                offsetO = offsetO + planeSpeed;
+                offsetT = offsetT + xSpeed;
+                offsetH = offsetH + xSpeed;
+                offsetF = offsetF + planeSpeed;
 
                 if((height/2)+40+offsetF>planeHeight+(planeWidth/2)) {
                     offsetO = 0;
