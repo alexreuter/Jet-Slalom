@@ -21,6 +21,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <class>
+            android:name="box"
+        </class>
+
     </application>
 
 </manifest>
