@@ -22,10 +22,8 @@ import java.util.ArrayList;
 //Fix strange upside down plane flip.
 //Need to change speed according to screen density
 //DISABLE AUTOWIN
-//Need perspecive exponential box
-//Fix floating above screen, think has to do with spawning
-//BUG IN INITIAL Y POSITION CODE.
-//SOMETHING TO DO WITH THE Y POSITIONS WHEN THEY ARE NEGATIVE
+//MAKE POSITION CONSTANTALLY A COMPONANT OF THE SCREEN ANGLE.
+//POSITION CONSTANTALLY FUNCTION OF SCREEN ANGLE
 
 
 public class MainActivity extends Activity implements SensorEventListener
@@ -52,9 +50,8 @@ public class MainActivity extends Activity implements SensorEventListener
     public int defaultSmoothRate = 10;
     public int smoothRate = 10;
     public ArrayList <Box> boxes = new ArrayList<Box>();
-    public int counter = 0;
+    public ArrayList <Float> noLine = new ArrayList<Float>();
     public float derivitive = 0;
-
 
     //This is just used for the vibration code.
     Context context = this;
@@ -92,13 +89,10 @@ public class MainActivity extends Activity implements SensorEventListener
         //**************************************    Testing Box Class *************************
 
         //THIS DETIRMINES THE TOTAL AMOUNT OF BLOCKS.
-        for(int i = 0;i<1;i++)
+        for(int i = 0;i<12;i++)
         {
-            boxes.add(new Box(width,height,planeHeight,planeWidth,boxSize));
+            boxes.add(new Box(width,height,planeHeight,planeWidth,boxSize,i));
         }
-
-//        final box Fred = new box(width,height,boxSize);
-//        final box John = new box(width,height,boxSize);
 
         View v = new View(this)
         {
@@ -163,28 +157,15 @@ public class MainActivity extends Activity implements SensorEventListener
                 canvas.drawText("Deriv: "+derivitive,30,90,black);
                 canvas.drawText("Bangle"+boxAngle,30,110,black);
 
-
-
-
-
-                //********************************************* COLLISIONS ****************************************
-//                if(Fred.yChange+height/2>planeHeight&&Fred.xChange+(width/2)>width / 2 - (planeWidth / 2)&&Fred.yChange+height/2<planeHeight+(planeWidth/2)&&Fred.xChange+(width/2)<width / 2 + planeWidth)
-//                {
-//                    vib.vibrate(30);
-//                }
-
                 canvas.drawBitmap(Plane, width / 2 - (planeWidth / 2), planeHeight, white);
 
                 //This is the rate that the view is re-drawn
                 postInvalidateDelayed(1);
             }
         };
-
         setContentView(v);
-
         //End of onCreate
     }
-
 
 
     @Override
@@ -216,6 +197,7 @@ public class MainActivity extends Activity implements SensorEventListener
 
 
 //********************************* MAIN ANIMATION CLASS ********************************************************
+
     public class Box
     {
         float xChange = 0;
@@ -229,8 +211,10 @@ public class MainActivity extends Activity implements SensorEventListener
         int planeWidth = 0;
         int initialY = 0;
         float offset = 0;
+        int id = 0;
 
-        public Box(int width,int height,int planeHeight,int planeWidth, int boxSize)
+
+        public Box(int width,int height,int planeHeight,int planeWidth, int boxSize, int id)
         {
             this.height = height;
             this.boxSize = boxSize;
@@ -240,19 +224,35 @@ public class MainActivity extends Activity implements SensorEventListener
             this.planeWidth = planeWidth;
             yChange = 0;
             sizer = 0;
+            this.id = id;
 
+            //THIS IS USED TO SPREAD OUT THE RANDOM SPREADING OF THE BOXES
+            noLine.add(0,xChange);
         }
 
-        public int randStart()
-        {
-            if(Math.random()>=0.5)
-            {
-                return (int)(Math.random()*((this.width/2)-(boxSize/2)+1));
+        public int randStart() {
+            int returner;
+            if (Math.random() >= 0.5) {
+                returner =(int) (Math.random() * ((this.width / 2) - (boxSize / 2) + 1));
+            } else {
+                returner =-(int) (Math.random() * ((this.width / 2) - (boxSize / 2) + 1));
             }
-            else
+
+            for(int i=0;i<noLine.size();i++)
             {
-                return -(int)(Math.random()*((this.width/2)-(boxSize/2)+1));
+                if(noLine.get(i)+30<xChange&&noLine.get(i)-30>xChange)
+                {
+                    if(Math.random()<0.5)
+                    {
+                        returner = returner + 30;
+                    }
+                    else
+                    {
+                        returner = returner - 30;
+                    }
+                }
             }
+            return returner;
         }
 
         public void animate()
@@ -260,44 +260,25 @@ public class MainActivity extends Activity implements SensorEventListener
             xChange = xChange + (float)(boxAngle*multiplier);
             derivitive = yChange-yChange + (1*this.multiplier);
             yChange = yChange + (1*this.multiplier);
-
             this.multiplier = (1+(Math.abs(Math.abs(initialY)-yChange)/(height/2))*Mmultiplier);
 
             //This sets the speed for all blocks
             //SET SPEED****************************************
             sizer = sizer + (float)0.05;
 
+            //OUT OF BOUNDS
             if(xChange<-(width/2)||xChange>(width/2)||yChange>(height/2))
             {
                 xChange = randStart();
-                //xChange = -40;
                 yChange = (float)((boxAngle*xChange));
                 initialY = (int)yChange+1;
                 sizer = 0;
             }
-            
+
             if(yChange+height/2>planeHeight&&xChange+(width/2)>width / 2 - (planeWidth / 2)&&yChange+height/2<planeHeight+(planeWidth/2)&&xChange+(width/2)<width / 2 + planeWidth)
             {
-               //ADD VIBRATion
+                //ADD VIBRATION
             }
         }
     }
 }
-
-
-
-
-
-//TRYING TO ROTATE RECTANGLE
-//canvas.save();
-//canvas.rotate((int)currentRot,(int)offsetO+(boxSize/2),(int)offsetT+(boxSize/2));
-
-
-//THIS IS THE ORIGIONALLLL **************************************************
-//canvas.drawRect(((width / 2) - (boxSize / 2)) + (float) offsetO - (float) sizer, height / 2 - (boxSize / 2) + (float) offsetT - (float) sizer, (width / 2) + (boxSize / 2) + (float) offsetH + (float) sizer, (height / 2) + (boxSize / 2) + (float) offsetF + (float) sizer, black);
-// THIS IS WITH BOX CLASS
-//canvas.drawRect(((width / 2) - (boxSize / 2)) + (float)Fred.animate().get(0) - (float)Fred.animate().get(2),height / 2 - (boxSize / 2) + (float)Fred.animate().get(1) - (float)Fred.animate().get(2),(width / 2) + (boxSize / 2) + (float)Fred.animate().get(0) + (float)Fred.animate().get(2),(height / 2) + (boxSize / 2) + (float)Fred.animate().get(1) + (float)Fred.animate().get(2),black);
-//Fred.animate();
-//canvas.drawRect((width/2) - (boxSize/2) + Fred.xChange - Fred.sizer,height/2 - (boxSize/2) + Fred.yChange - Fred.sizer, (width/2) + (boxSize/2) +Fred.xChange + Fred.sizer, (height/2) + (boxSize/2) + Fred.yChange+Fred.sizer, black);
-//canvas.restore();
-
