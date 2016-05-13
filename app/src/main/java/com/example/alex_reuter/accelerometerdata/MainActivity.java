@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.os.Vibrator;
 import android.graphics.Paint;
 import android.hardware.Sensor;
@@ -15,15 +16,17 @@ import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.hardware.SensorEventListener;
-
 import java.util.ArrayList;
+import java.util.Random;
 
 
 //Fix strange upside down plane flip.
 //Need to change speed according to screen density
 //DISABLE AUTOWIN
 //MAKE POSITION CONSTANTALLY A COMPONANT OF THE SCREEN ANGLE.
-//POSITION CONSTANTALLY FUNCTION OF SCREEN ANGLE
+//POSITION CONSTANTALLY FUNCTION OF SCREEN ANGLE.
+//Make new variables for the position
+
 
 
 public class MainActivity extends Activity implements SensorEventListener
@@ -212,6 +215,8 @@ public class MainActivity extends Activity implements SensorEventListener
         int initialY = 0;
         float offset = 0;
         int id = 0;
+        float testX = 0;
+        float testY = 0;
 
 
         public Box(int width,int height,int planeHeight,int planeWidth, int boxSize, int id)
@@ -255,12 +260,27 @@ public class MainActivity extends Activity implements SensorEventListener
             return returner;
         }
 
+        public Color randColor()
+        {
+            Random rand = new Random();
+            int r = rand.nextInt(255);
+            int g = rand.nextInt(255);
+            int b = rand.nextInt(255);
+            Color bob = new Color();
+            bob.rgb(r, g, b);
+            return bob;
+        }
+
         public void animate()
         {
-            xChange = xChange + (float)(boxAngle*multiplier);
-            derivitive = yChange-yChange + (1*this.multiplier);
-            yChange = yChange + (1*this.multiplier);
+//            xChange = xChange + (float)(boxAngle*multiplier);
+//            derivitive = yChange-yChange + (1*this.multiplier);
+//            //yChange = yChange + (1*this.multiplier);
+//            yChange = (float)(boxAngle*xChange)+(1*this.multiplier);
+
+            yChange = (float)(boxAngle*xChange)+(1*this.multiplier);
             this.multiplier = (1+(Math.abs(Math.abs(initialY)-yChange)/(height/2))*Mmultiplier);
+
 
             //This sets the speed for all blocks
             //SET SPEED****************************************
