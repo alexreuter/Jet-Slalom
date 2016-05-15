@@ -12,34 +12,42 @@
     tools:context="com.example.alex_reuter.accelerometerdata.MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <Button
+    <TextView
         android:layout_width="wrap_content"
+        android:id="@+id/status"
         android:layout_height="wrap_content"
-        android:text="Start"
-        android:id="@+id/startButton"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:layout_gravity="center_horizontal" />
+        android:text="Why U no showup" />
 
     <TextView
         android:layout_width="wrap_content"
+        android:id="@+id/x"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Small Text"
-        android:id="@+id/textView"
-        android:layout_gravity="center_horizontal" />
+        android:text="Hello World!" />
 
-    <Button
+    <TextView
         android:layout_width="wrap_content"
+        android:id="@+id/y"
         android:layout_height="wrap_content"
-        android:text="Store"
-        android:id="@+id/store"
-        android:layout_gravity="center_horizontal" />
+        android:text="Hello World!" />
 
-    <EditText
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
+        android:id="@+id/z"
         android:layout_height="wrap_content"
-        android:id="@+id/editText"
-        android:layout_gravity="center_horizontal" />
+        android:text="Hello World!" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:id="@+id/parsed"
+        android:layout_height="wrap_content"
+        android:text="Hello World!" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:id="@+id/lr"
+        android:layout_height="wrap_content"
+        android:text="Hello World!" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:id="@+id/ud"
+        android:layout_height="wrap_content"
+        android:text="Hello World!" />
 </LinearLayout>
-
