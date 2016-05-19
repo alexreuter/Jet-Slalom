@@ -160,13 +160,19 @@ public class ActualGame extends Activity implements SensorEventListener
                 {
                     Box currentBox = boxes.get(i);
                     canvas.save();
-                    canvas.rotate((float) currentRot, (width / 2) + currentBox.xChange - currentBox.sizer, height / 2 + currentBox.yChange - currentBox.sizer);
+                    //WORKING
+                    //canvas.rotate((float) currentRot, (width / 2), height / 2);
+                    //This rotates box around its own center
+                    canvas.rotate((float)currentRot,(width / 2) + (boxSize / 2) + currentBox.xChange - currentBox.sizer, ((height/2) + (boxSize / 2) + currentBox.yChange - currentBox.sizer));
                     //OLD AND WORKING
                     //canvas.drawRect((width / 2) - (boxSize / 2) + currentBox.xChange - currentBox.sizer, height / 2 - (boxSize / 2) + currentBox.yChange - currentBox.sizer, (width / 2) + (boxSize / 2) + currentBox.xChange + currentBox.sizer, (height / 2) + (boxSize / 2) + currentBox.yChange + currentBox.sizer, black);
-                    canvas.drawRect((width / 2) - (boxSize / 2) + currentBox.xChange - currentBox.sizer, (float)((height/2) + currentBox.initialX*boxAngle - (boxSize / 2) + currentBox.yChange - currentBox.sizer), (width / 2) + (boxSize / 2) + currentBox.xChange + currentBox.sizer, (float)((height/2) + currentBox.initialX*boxAngle + (boxSize / 2) + currentBox.yChange + currentBox.sizer), black);
+                    //REAL ONE
+                    canvas.drawRect((width / 2) - (boxSize / 2) + currentBox.xChange - currentBox.sizer, ((height/2) - (boxSize / 2) + currentBox.yChange - currentBox.sizer), (width / 2) + (boxSize / 2) + currentBox.xChange + currentBox.sizer, (float)((height/2) + (boxSize / 2) + currentBox.yChange + currentBox.sizer), black);
+                    //canvas.drawRect(0,0,100,100,black);
                     canvas.restore();
                     currentBox.animate();
                 }
+
 
 
                 //MATH converts the dgree of tilt of horizon to slope
@@ -266,7 +272,7 @@ public class ActualGame extends Activity implements SensorEventListener
             this.width = width;
             xChange = randStart();
             initialX = (int)xChange;
-            yChange = (float)((boxAngle*xChange));
+            yChange = (float)boxAngle*xChange;
 
             this.planeHeight = planeHeight;
             this.planeWidth = planeWidth;
@@ -316,8 +322,10 @@ public class ActualGame extends Activity implements SensorEventListener
 
         public void animate()
         {
-            xChange = 40;
-            yChange = (float)boxAngle*xChange;
+
+            xChange = xChange + (float)(-boxAngle*multiplier);
+            yChange = yChange+1;
+            //yChange = (float)boxAngle*xChange;
 //            xChange = xChange + (float)(boxAngle*multiplier);
 //            derivitive = yChange-yChange + (1*this.multiplier);
 //            //yChange = yChange + (1*this.multiplier);
