@@ -22,23 +22,6 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Random;
 
-
-//Fix strange upside down plane flip.
-//Need to change speed according to screen density
-//DISABLE AUTOWIN
-//MAKE POSITION CONSTANTALLY A COMPONANT OF THE SCREEN ANGLE.
-//POSITION CONSTANTALLY FUNCTION OF SCREEN ANGLE.
-//Make new variables for the position
-//Boxangle change
-//Fix collisions to make score work
-
-//MAKE COLORS TRULY RANDOM
-//Can make screen independant with pt instead of px
-//Work with rotating around plane
-//Lock screen rotation
-
-
-
 public class ActualGame extends Activity implements SensorEventListener
 {
 
@@ -178,6 +161,7 @@ public class ActualGame extends Activity implements SensorEventListener
                 Paint black = new Paint();
                 black.setColor(0xFF000000);
                 black.setStrokeWidth(0);
+                black.setTextSize(pixel*5);
 
                 Paint ground = new Paint();
                 ground.setColor(0xFF37BF28);
@@ -188,6 +172,14 @@ public class ActualGame extends Activity implements SensorEventListener
                 Paint current = new Paint();
                 current.setColor(0xFF000000);
                 current.setStrokeWidth(0);
+
+                //Every 20 points a new block is added and the game gets a little faster
+                if((score%10) == 0)
+                {
+                    boxes.add(new Box(width, height, planeHeight, planeWidth, boxSize, pixel));
+                    gameSpeed = gameSpeed +(float)0.25;
+                    score = score + 1;
+                }
 
                 canvas.save();
                 //This moves the canvas down by half
@@ -219,18 +211,11 @@ public class ActualGame extends Activity implements SensorEventListener
                 boxAngle = Math.tan(boxAngle);
 
                 //Displaying scores
-                canvas.drawText("Score: "+score,10,10,black);
-                canvas.drawText("High Score: "+highScore,10,30,black);
+                canvas.drawText("Score: "+score,10,90,black);
+                canvas.drawText("High Score: "+highScore,10,60,black);
 
                 //This draws the plane icon
                 canvas.drawBitmap(Plane, width / 2 - (planeWidth / 2), planeHeight, white);
-
-                //Every ten points a new block is added and the game gets a little faster
-                if(score%20 == 0)
-                {
-                    boxes.add(new Box(width,height,planeHeight,planeWidth,boxSize,pixel));
-                    gameSpeed = gameSpeed +(float)0.25;
-                }
 
                 //This is the rate that the view is re-drawn
                 postInvalidateDelayed(10);
@@ -374,6 +359,7 @@ public class ActualGame extends Activity implements SensorEventListener
                 sizer = 0;
                 ySpeed = 0;
                 score = score + 1;
+
                 //Assigns a new color
                 randColor();
             }
@@ -387,6 +373,14 @@ public class ActualGame extends Activity implements SensorEventListener
                 Color.set(0,55);
                 Color.set(1,191);
                 Color.set(2,40);
+
+                //Resets to the initial amount of boxes
+                boxes.clear();
+                boxes.add(new Box((int) width, (int)height, planeHeight, planeWidth, (int) boxSize, pixel));
+                boxes.add(new Box((int)width,(int)height,planeHeight,planeWidth,(int)boxSize,pixel));
+
+                //Makes the game its initial speed
+                gameSpeed = (float)0.5;
             }
         }
     }
