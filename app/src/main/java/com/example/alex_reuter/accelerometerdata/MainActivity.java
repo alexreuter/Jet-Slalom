@@ -35,26 +35,27 @@ public class MainActivity extends Activity
             }
         });
 
-        Button store = (Button)findViewById(R.id.store);
-        store.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                EditText editText = (EditText)findViewById(R.id.editText);
-                int foobar = Integer.parseInt(editText.getText().toString());
-
-                SharedPreferences sharedpreferences;
-                sharedpreferences = getSharedPreferences("bob", Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedpreferences.edit();
-                //int foobar = Integer.parseInt(editText.getText().toString());
-               // Toast.makeText(getApplicationContext(), "", Toast.LENGTH_LONG).show();
-
-                editor.putInt("score", foobar);
-                editor.commit();
-
-                Toast.makeText(getApplicationContext(), "score has been stored", Toast.LENGTH_SHORT).show();
-                editText.setText("");
-            }
-        });
+        //This was used to first initialize the storage
+//        Button store = (Button)findViewById(R.id.store);
+//        store.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                EditText editText = (EditText)findViewById(R.id.editText);
+//                int foobar = Integer.parseInt(editText.getText().toString());
+//
+//                SharedPreferences sharedpreferences;
+//                sharedpreferences = getSharedPreferences("bob", Context.MODE_PRIVATE);
+//                SharedPreferences.Editor editor = sharedpreferences.edit();
+//                //int foobar = Integer.parseInt(editText.getText().toString());
+//               // Toast.makeText(getApplicationContext(), "", Toast.LENGTH_LONG).show();
+//
+//                editor.putInt("score", foobar);
+//                editor.commit();
+//
+//                Toast.makeText(getApplicationContext(), "score has been stored", Toast.LENGTH_SHORT).show();
+//                editText.setText("");
+//            }
+//        });
 
         SharedPreferences prefs = getSharedPreferences("bob", MODE_PRIVATE);
         String disp = String.valueOf(prefs.getInt("score", 0));
