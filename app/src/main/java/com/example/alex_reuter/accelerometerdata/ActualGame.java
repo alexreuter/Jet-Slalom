@@ -13,6 +13,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
@@ -31,6 +32,11 @@ import java.util.Random;
 //Boxangle change
 //Fix collisions to make score work
 
+//MAKE COLORS TRULY RANDOM
+//Can make screen independant with pt instead of px
+//Work with rotating around plane
+//Lock screen rotation
+
 
 
 public class ActualGame extends Activity implements SensorEventListener
@@ -48,9 +54,7 @@ public class ActualGame extends Activity implements SensorEventListener
     //This is used to detirmine when to turn smoothing on and off
     public double delta = 0;
     //This detirmines when smoothing is turned off for rapid movements
-    public double threshold = 30;
-    //This detirmines the speed that blocks manouver
-    public float Mmultiplier = 5;
+    public double threshold = 50;
 
     //Set to 1 for no smoothing
     //20 is ridiculously slow response time.
@@ -59,17 +63,41 @@ public class ActualGame extends Activity implements SensorEventListener
     public ArrayList <Box> boxes = new ArrayList<Box>();
     public ArrayList <Float> noLine = new ArrayList<Float>();
     public float derivitive = 0;
-    public static int score = 0;
+    public static int score = 1;
     public static int highScore = 0;
+    float xShiftSpeed = 4;
+    float gameSpeed = (float)0.5;
 
     //This is just used for the vibration code.
     Context context = this;
+
+    //This method gets the raw accelerometer values and converts it to an angle in degrees.
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent)
+    {
+        Sensor mySensor = sensorEvent.sensor;
+        if (mySensor.getType() == Sensor.TYPE_ACCELEROMETER)
+        {
+
+            //This changes where the plane will ultimately turn to.
+            targetRot = Math.toDegrees(Math.atan2(sensorEvent.values[0],sensorEvent.values[1]));
+
+            //This makes the maximum angle on both sides 45 degrees
+            if(targetRot>45)
+            {
+                targetRot = 45;
+            }
+            else if(targetRot<-45)
+            {
+                targetRot = -45;
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
         setContentView(R.layout.activity_actual_game);
 
         //************************************ TOAST STUFF **************************************************
@@ -80,16 +108,23 @@ public class ActualGame extends Activity implements SensorEventListener
         String scoreS = String.valueOf(highScore);
         Toast.makeText(getApplicationContext(), "High Score: " + scoreS, Toast.LENGTH_LONG).show();
 
-
         //Get x and y of screen
         Display displayX = getWindowManager().getDefaultDisplay();
         final int width = displayX.getWidth();
         final int height = displayX.getHeight();
 
+        //Screen Density
+        DisplayMetrics dm = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(dm);
+        final float xDpi = dm.xdpi;
+        float yDpi = dm.ydpi;
+
+        final float pixel = height/yDpi;
+
         //Sizes of stuff
-        final int planeWidth = width/6;
+        final int planeWidth = width/8;
         final int planeHeight = height-(planeWidth+(height/8));
-        final int boxSize = 10;
+        final int boxSize = (int)xDpi/20;
 
         //Vibration
         final Vibrator vib = (Vibrator) this.context.getSystemService(Context.VIBRATOR_SERVICE);
@@ -105,13 +140,9 @@ public class ActualGame extends Activity implements SensorEventListener
         senSensorManager.registerListener(this, senAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 
 
-        //**************************************    Testing Box Class *************************
-
-        //THIS DETIRMINES THE TOTAL AMOUNT OF BLOCKS.
-        for(int i = 0;i<1;i++)
-        {
-            boxes.add(new Box(width,height,planeHeight,planeWidth,boxSize,i));
-        }
+        //This creates the initial two blocks
+        boxes.add(new Box(width,height,planeHeight,planeWidth,boxSize,pixel));
+        boxes.add(new Box(width,height,planeHeight,planeWidth,boxSize,pixel));
 
         View v = new View(this)
         {
@@ -156,44 +187,53 @@ public class ActualGame extends Activity implements SensorEventListener
                 canvas.drawRect(-width, 0, 2 * width, height, ground);
                 canvas.restore();
 
+                Paint current = new Paint();
+                current.setColor(0xFF000000);
+                current.setStrokeWidth(0);
+
                 for(int i = 0;i<boxes.size();i++)
                 {
                     Box currentBox = boxes.get(i);
                     canvas.save();
-                    //WORKING
-                    //canvas.rotate((float) currentRot, (width / 2), height / 2);
-                    //This rotates box around its own center
-                    canvas.rotate((float)currentRot,(width / 2) + (boxSize / 2) + currentBox.xChange - currentBox.sizer, ((height/2) + (boxSize / 2) + currentBox.yChange - currentBox.sizer));
-                    //OLD AND WORKING
-                    //canvas.drawRect((width / 2) - (boxSize / 2) + currentBox.xChange - currentBox.sizer, height / 2 - (boxSize / 2) + currentBox.yChange - currentBox.sizer, (width / 2) + (boxSize / 2) + currentBox.xChange + currentBox.sizer, (height / 2) + (boxSize / 2) + currentBox.yChange + currentBox.sizer, black);
-                    //REAL ONE
-                    canvas.drawRect((width / 2) - (boxSize / 2) + currentBox.xChange - currentBox.sizer, ((height/2) - (boxSize / 2) + currentBox.yChange - currentBox.sizer), (width / 2) + (boxSize / 2) + currentBox.xChange + currentBox.sizer, (float)((height/2) + (boxSize / 2) + currentBox.yChange + currentBox.sizer), black);
-                    //canvas.drawRect(0,0,100,100,black);
+                    canvas.rotate((float) currentRot, (width / 2) + (boxSize / 2) + currentBox.xChange - currentBox.sizer, ((height / 2) + (boxSize / 2) + (float)boxAngle*currentBox.xChange+currentBox.yChange - currentBox.sizer));
+                    current.setARGB(255, currentBox.Color.get(0), currentBox.Color.get(1), currentBox.Color.get(2));
+                    canvas.drawRect((width / 2) - (boxSize / 2) + currentBox.xChange - currentBox.sizer, height / 2 - (boxSize / 2) + (float) boxAngle * currentBox.xChange + currentBox.yChange - currentBox.sizer, (width / 2) + (boxSize / 2) + currentBox.xChange + currentBox.sizer, (height / 2) + (boxSize / 2) +(float)boxAngle*currentBox.xChange + currentBox.yChange + currentBox.sizer, current);
                     canvas.restore();
                     currentBox.animate();
                 }
 
 
 
-                //MATH converts the dgree of tilt of horizon to slope
+
                 //This converts from degreees to radians
                 boxAngle = (currentRot/180)*Math.PI;
+                //This converts the degree of tilt of horizon to slope
                 boxAngle = Math.tan(boxAngle);
 
                 //******************************************* DEBUG TEXT***************************************
-                canvas.drawText("Multiplier: "+boxes.get(0).multiplier,30,30,black);
+                //canvas.drawText("Multiplier: "+boxes.get(0).multiplier,30,30,black);
                 canvas.drawText("initY" + boxes.get(0).initialY,30,40,black);
                 canvas.drawText("yChange"+boxes.get(0).yChange,30,50,black);
-                canvas.drawText("Bangle*xChange"+boxes.get(0).multiplier*boxes.get(0).xChange,30,70,black);
+                //canvas.drawText("Bangle*xChange"+boxes.get(0).multiplier*boxes.get(0).xChange,30,70,black);
                 canvas.drawText("Deriv: "+derivitive,30,90,black);
-                canvas.drawText("Bangle"+boxAngle,30,110,black);
+                canvas.drawText("LOOK"+boxAngle*boxes.get(0).xChange,30,110,black);
                 canvas.drawText("Score: "+score,30,130,black);
                 canvas.drawText("HScore: "+highScore,30,150,black);
+                canvas.drawText("xDpi: "+xDpi,30,170,black);
+                //canvas.drawText("work: "+boxAngle*boxes.get(0).multiplier,30,190,black);
 
+                //This draws the plane icon
                 canvas.drawBitmap(Plane, width / 2 - (planeWidth / 2), planeHeight, white);
 
+                //Every ten points a new block is added and the game gets a little faster
+                if(score%20 == 0)
+                {
+                    boxes.add(new Box(width,height,planeHeight,planeWidth,boxSize,pixel));
+                    gameSpeed = gameSpeed +(float)0.25;
+                }
+
                 //This is the rate that the view is re-drawn
-                postInvalidateDelayed(1);
+                postInvalidateDelayed(10);
             }
         };
         setContentView(v);
@@ -204,13 +244,11 @@ public class ActualGame extends Activity implements SensorEventListener
     public void onPause()
     {
         super.onPause();
+        //Only stores the score if it is greater than the high score
         if(score>highScore) {
             SharedPreferences sharedpreferences;
             sharedpreferences = getSharedPreferences("bob", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedpreferences.edit();
-            //int foobar = Integer.parseInt(editText.getText().toString());
-            // Toast.makeText(getApplicationContext(), "", Toast.LENGTH_LONG).show();
-
             editor.putInt("score", score);
             editor.commit();
         }
@@ -218,25 +256,7 @@ public class ActualGame extends Activity implements SensorEventListener
     }
 
 
-    @Override
-    public void onSensorChanged(SensorEvent sensorEvent)
-    {
-        Sensor mySensor = sensorEvent.sensor;
-        if (mySensor.getType() == Sensor.TYPE_ACCELEROMETER)
-        {
 
-            //This changes where the plane will ultimately turn to.
-            targetRot = Math.toDegrees(Math.atan2(sensorEvent.values[0],sensorEvent.values[1]));
-            if(targetRot>45)
-            {
-                targetRot = 45;
-            }
-            else if(targetRot<-45)
-            {
-                targetRot = -45;
-            }
-        }
-    }
 
     //Just ignore this, needs to be overidden to implement SensorData
     @Override
@@ -248,129 +268,116 @@ public class ActualGame extends Activity implements SensorEventListener
 
     public class Box
     {
+        //All of these just initialising
         float xChange = 0;
         float yChange = 0;
         float sizer = 0;
         float width = 0;
         float height = 0;
         float boxSize = 0;
-        float multiplier = 1;
         int planeHeight = 0;
         int planeWidth = 0;
         int initialY = 0;
-        int initialX = 0;
-        float offset = 0;
-        int id = 0;
-        float testX = 0;
-        float testY = 0;
+        float ySpeed = 0;
+        float pixel = 0;
+        float ySpeedChange = 0;
+        //This is the array that stores the rgb values for the color of teh box
+        ArrayList <Integer> Color = new ArrayList<Integer>();
 
-
-        public Box(int width,int height,int planeHeight,int planeWidth, int boxSize, int id)
+        public Box(int width,int height,int planeHeight,int planeWidth, int boxSize, float pixel)
         {
+            //This is part of the workaround in getting variables from the onCreate activity
             this.height = height;
             this.boxSize = boxSize;
             this.width = width;
-            xChange = randStart();
-            initialX = (int)xChange;
-            yChange = (float)boxAngle*xChange;
-
+            this.pixel = pixel;
             this.planeHeight = planeHeight;
             this.planeWidth = planeWidth;
-            yChange = 0;
-            sizer = 0;
-            this.id = id;
 
-            //THIS IS USED TO SPREAD OUT THE RANDOM SPREADING OF THE BOXES
+            xChange = randStart();
+            yChange = (float)boxAngle*xChange;
+
+            //Starts out normal sized
+            sizer = 0;
+
+            //This creates an initial random color
+            randColor();
+
+            //This adds the position to the array that prevents overlap
             noLine.add(0,xChange);
         }
 
         public int randStart() {
             int returner;
+            //This is how big a gap the program should leave
+            int threshold = 30;
+
+            //Picks randomly if it will be on the left or right
             if (Math.random() >= 0.5) {
                 returner =(int) (Math.random() * ((this.width / 2) - (boxSize / 2) + 1));
             } else {
                 returner =-(int) (Math.random() * ((this.width / 2) - (boxSize / 2) + 1));
             }
 
+            //Loops through an array of xPositions of other blocks to check it won't be too close
             for(int i=0;i<noLine.size();i++)
             {
-                if(noLine.get(i)+30<xChange&&noLine.get(i)-30>xChange)
+                if(noLine.get(i)+threshold<xChange&&noLine.get(i)-threshold>xChange)
                 {
-                    if(Math.random()<0.5)
-                    {
-                        returner = returner + 30;
-                    }
-                    else
-                    {
-                        returner = returner - 30;
-                    }
+                    //If its too close, try again
+                    randStart();
                 }
             }
             return returner;
         }
 
-        public Color randColor()
+        //This changes the values in a color array which is used in the actual drawing
+        //It is an array because decalring a paint won't take a java color, only r,g,b values
+        public void randColor()
         {
+            Color.clear();
             Random rand = new Random();
-            int r = rand.nextInt(255);
-            int g = rand.nextInt(255);
-            int b = rand.nextInt(255);
-            Color bob = new Color();
-            bob.rgb(r, g, b);
-            return bob;
+            int r = rand.nextInt(256);
+            int g = rand.nextInt(256);
+            int b = rand.nextInt(256);
+            Color.add(0,r);
+            Color.add(0,g);
+            Color.add(0,b);
         }
 
         public void animate()
         {
 
-            xChange = xChange + (float)(-boxAngle*multiplier);
-            yChange = yChange+1;
-            //yChange = (float)boxAngle*xChange;
-//            xChange = xChange + (float)(boxAngle*multiplier);
-//            derivitive = yChange-yChange + (1*this.multiplier);
-//            //yChange = yChange + (1*this.multiplier);
-//            yChange = (float)(boxAngle*xChange)+(1*this.multiplier);
+            xChange = xChange + ((float)(boxAngle*pixel)*gameSpeed);
+            yChange = yChange+(pixel)*gameSpeed*ySpeedChange;
 
-//            xChange = xChange + (float)(boxAngle*multiplier);
-//            yChange = (float)(boxAngle*xChange)+(1*this.multiplier);
-//            this.multiplier = (1+(Math.abs(Math.abs(initialY)-yChange)/(height/2))*Mmultiplier);
-//            xChange = xChange + (float)(boxAngle*multiplier);
-//            yChange = 1*this.multiplier;
+            //This makes the box accelerate as it goes down, making it seem to have perspective.
+            ySpeedChange = (float)(Math.abs(initialY-yChange)/((height/2)+Math.abs(initialY))+0.5);
 
-            //THIS SETUP IS THE OLD DUMB VERSION, BUG FIX IS IN THE DRAWING ITSELF
-            //THIS.MULTIPLIER WORKS ONLY FOR POSITIVE VALUES!!!!!!!
+            //This is how much the box grows per cycle
+            sizer = sizer + (pixel/15*gameSpeed);
 
-//            xChange = xChange + (float)(boxAngle);
-//            yChange = yChange + (1*this.multiplier);
-//            this.multiplier = 5*Math.abs(initialY-yChange)/((height/2)+Math.abs(initialY));
-
-            //xChange = xChange + (float)(boxAngle*multiplier);
-            //testY = testY + 1;
-            //yChange = (float)(boxAngle*xChange) + testY;
-
-            //multiplier = (1+(Math.abs(Math.abs(initialY)-yChange)/(height/2))*Mmultiplier);
-
-            //This sets the speed for all blocks
-            //SET SPEED****************************************
-            sizer = sizer + (float)0.05;
-
-            //OUT OF BOUNDS
+            //Out of bounds if statement
             if(xChange<-(width/2)||xChange>(width/2)||yChange>(height/2))
             {
                 xChange = randStart();
-                initialX = (int)xChange;
-                yChange = (float)((boxAngle*xChange));
+                yChange = 0;
                 initialY = (int)yChange;
                 sizer = 0;
+                ySpeed = 0;
                 score = score + 1;
+                randColor();
             }
 
             if(yChange+height/2>planeHeight&&xChange+(width/2)>width / 2 - (planeWidth / 2)&&yChange+height/2<planeHeight+(planeWidth/2)&&xChange+(width/2)<width / 2 + planeWidth)
             {
-                //ADD VIBRATION
 
-                //score = 0;
-                //Toast.makeText(getApplicationContext(), "HIIT", Toast.LENGTH_SHORT).show();
+                score = 0;
+
+                //This makes the box the same color as the ground
+                Color.set(0,55);
+                Color.set(1,191);
+                Color.set(2,40);
             }
         }
     }
